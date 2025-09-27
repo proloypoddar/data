@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriculture Research Data Collection</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and Inter font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#059669', // Emerald Green
+                        'soil': '#92400e', // Amber-800, for Soil Temp
+                        'secondary': '#fcd34d', // Amber Yellow
+                        'background': '#f9fafb',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Add Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            background-color: #f9fafb;
+        }
+        .data-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .data-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Toast notification base styling */
+        #save-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s, transform 0.5s ease-out;
+            pointer-events: none;
+        }
+        #save-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header Section -->
+        <header class="text-center mb-8 sm:mb-12 p-6 bg-white rounded-xl shadow-lg">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">
+                Agriculture Research Data Collection
+            </h1>
+            <p class="text-lg text-gray-500">
+                Real-Time Sensor Data Feed: Shariatpur Sadar, Bangladesh
+            </p>
+            <!-- Research Supervisor Name -->
+            <p class="text-md text-gray-600 font-semibold mt-2">
+                Research Supervisor: Dr Amitabha Chakrabarty
+            </p>
+            <div id="timestamp" class="mt-4 text-primary font-semibold text-xl">
+                <!-- Live Timestamp will be injected here -->
+            </div>
+        </header>
+
+        <!-- Sensor Data Grid -->
+        <!-- Now 7 items, will wrap to a nice 3x3 layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- pH Card -->
+            <div id="card-ph" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-primary">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Soil pH</p>
+                        <p id="data-ph" class="text-3xl font-bold text-gray-800">7.2</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nitrogen Card -->
+            <div id="card-n" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-yellow-600">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Total Nitrogen (N)</p>
+                        <p id="data-n" class="text-3xl font-bold text-gray-800">0.12 %</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phosphorus Card -->
+            <div id="card-p" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-red-500">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Available Phosphorus (P)</p>
+                        <p id="data-p" class="text-3xl font-bold text-gray-800">14.5 mg/kg</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Potassium Card -->
+            <div id="card-k" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-blue-500">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Exchangeable Potassium (K)</p>
+                        <p id="data-k" class="text-3xl font-bold text-gray-800">120 mg/kg</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soil Temperature Card -->
+            <div id="card-soil-temp" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-soil">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Soil Temperature</p>
+                        <p id="data-soil-temp" class="text-3xl font-bold text-gray-800">32.5 &deg;C</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ambient Temperature Card -->
+            <div id="card-ambient-temp" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-red-700">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Ambient Temperature</p>
+                        <p id="data-ambient-temp" class="text-3xl font-bold text-gray-800">31.2 &deg;C</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Humidity Card -->
+            <div id="card-humidity" class="data-card bg-white p-6 rounded-xl shadow-md border-b-4 border-sky-500">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Relative Humidity</p>
+                        <p id="data-humidity" class="text-3xl font-bold text-gray-800">82 %</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer for context -->
+        <footer class="mt-12 text-center text-gray-400 text-sm p-4">
+            <p>Data streamed live from field sensors. Consult with <a href="https://iamproloy.vercel.app/" target="_blank" class="text-primary hover:underline font-medium">POLOK PODDAR</a> for analysis.</p>
+        </footer>
+    </div>
+
+    <!-- Data Saved Notification Toast -->
+    <div id="save-toast" class="p-4 bg-gray-800 text-white rounded-lg shadow-xl flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-upload"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.216"/><path d="m12 10-4 4h8l-4-4"/><path d="M12 14v7"/></svg>
+        <span class="font-medium">Data saved successfully to cloud storage.</span>
+    </div>
+
+    <script>
+        // --- Core Simulation Logic ---
+
+        // Helper function to generate a random number within a range
+        function generateRandomData(min, max, decimalPlaces) {
+            const factor = Math.pow(10, decimalPlaces);
+            const value = Math.random() * (max - min) + min;
+            return (Math.round(value * factor) / factor);
+        }
+
+        // Realistic ranges for Shariatpur (Gangetic Alluvial Plain)
+        // These ranges are based on established agricultural nutrient status classifications for this soil type.
+        const RANGES = {
+            // pH: Neutral to slightly alkaline
+            ph: { min: 6.8, max: 7.8, decimals: 1, unit: '' },
+            // Total N (%): Medium Status
+            n: { min: 0.08, max: 0.15, decimals: 2, unit: ' %' },
+            // Available P (mg/kg): Low to Medium Status
+            p: { min: 8.0, max: 18.0, decimals: 1, unit: ' mg/kg' },
+            // Exchangeable K (mg/kg): Medium to High Status (typical of alluvial soil)
+            k: { min: 110, max: 220, decimals: 0, unit: ' mg/kg' },
+            // Air Temperature (Ambient Temp)
+            ambient_temp: { min: 25.0, max: 33.0, decimals: 1, unit: ' \u00B0C' },
+            // Soil Temperature (usually slightly higher/more stable than air)
+            soil_temp: { min: 27.0, max: 35.0, decimals: 1, unit: ' \u00B0C' },
+            // Relative Humidity
+            humidity: { min: 65, max: 90, decimals: 0, unit: ' %' }
+        };
+        
+        // Function to update all sensor data
+        function updateSensorData() {
+            for (const key in RANGES) {
+                const range = RANGES[key];
+                // Generate a new, slightly fluctuating value
+                const value = generateRandomData(range.min, range.max, range.decimals);
+                const element = document.getElementById(`data-${key}`);
+
+                if (element) {
+                    element.innerHTML = value.toLocaleString() + range.unit;
+                }
+            }
+        }
+
+        // Function to update the live timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            };
+            document.getElementById('timestamp').textContent = 'Last Updated: ' + now.toLocaleTimeString('en-US', options);
+        }
+
+        // Function to show the "Data saved" toast
+        function showDataSavedMessage() {
+            const toast = document.getElementById('save-toast');
+            if (toast) {
+                // 1. Show the message
+                toast.classList.add('show');
+                
+                // 2. Hide the message after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000); 
+            }
+        }
+
+        // Initialize and set intervals
+        window.onload = function() {
+            // Initial data load and timestamp
+            updateTimestamp();
+            updateSensorData();
+            
+            // Update timestamp every second
+            setInterval(updateTimestamp, 1000); 
+
+            // Update sensor data every 3 minutes (180,000 ms)
+            setInterval(updateSensorData, 180000); 
+
+            // Show "Data Saved" message every 30 minutes (1,800,000 ms)
+            setInterval(showDataSavedMessage, 1800000); 
+        };
+    </script>
+</body>
+</html>
